@@ -8,6 +8,27 @@ from fli1 import FLI1Section
 type bmg_section = INF1Section | DAT1Section | FLW1Section | FLI1Section
 
 class BMG:
+    """
+    BMG (Message Data) file handler for parsing and repacking binary message data.
+    The BMG class manages the structure of BMG files which contain multiple sections
+    (INF1, DAT1, FLW1, FLI1) that store message information and data.
+    Attributes:
+        section_count (int): Number of sections in the BMG file.
+        sections (list[bmg_section]): List of parsed section objects.
+        flw1_section_offset (int): Offset to the FLW1 section in the file.
+        unknown (int): Unknown single byte value from file header.
+    Methods:
+        __init__(raw_bytes: BytesIO) -> None:
+            Parses a BMG file from raw bytes. Validates magic numbers and reads
+            all sections from the file.
+        add_header_to_section(section: bmg_section) -> BytesIO:
+            Wraps a section with its BMG header (magic and size) and applies
+            32-byte alignment padding. Returns the complete section data.
+        repack_bmg() -> BytesIO:
+            Reconstructs the complete BMG file from the current sections list.
+            Rebuilds the header and all sections with proper formatting and padding.
+            Returns the complete BMG file as bytes.
+    """
     section_count: int
     sections: list[bmg_section]
 

@@ -94,6 +94,21 @@ class INF1Entry:
         return data
 
 class INF1Section:
+    """
+    Represents an INF1 section from a BMG file.
+    This class manages a collection of INF1 entries and provides methods to
+    pack and unpack the section data to/from binary format.
+    Attributes:
+        data_offset (int): The byte offset where entry data begins (0x8).
+        entry_size (int): The size in bytes of each entry (0xC).
+        entries (list[INF1Entry]): List of INF1Entry objects in this section.
+        entry_count (int): The number of entries in this section.
+    Methods:
+        __init__(entries): Initialize a new INF1Section with optional entries.
+        add_entry(entry): Add an INF1Entry to the section.
+        unpack_section(raw_bytes): Class method to deserialize an INF1 section from raw bytes.
+        repack_section(): Serialize the section back into binary format.
+    """
     data_offset = 0x8
     entry_size = 0xC
     entries: list[INF1Entry]

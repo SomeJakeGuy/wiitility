@@ -54,6 +54,14 @@ class Message(NamedTuple):
     tags: list[Tag]
 
 class DAT1Section:
+    """
+    Represents a section of DAT1 message data containing multiple messages with their associated tags.
+    This class handles the serialization and deserialization of message sections encoded in a binary format
+    that combines UTF-8/Shift-JIS encoded text with embedded tag markers. Messages are delimited by null
+    characters and can contain formatting or metadata tags at various offsets within the string.
+    Attributes:
+        messages (list[Message]): A list of Message objects contained in this section.
+    """
     def __init__(self, messages: list[Message] = []):
         self.messages: list[Message] = messages
     

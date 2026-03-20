@@ -119,6 +119,25 @@ class FLWEventNode:
         return data
 
 class FLW1Section:
+    """
+    Represents a FLW1 (Flow) section containing flow nodes and branch nodes.
+    This class handles the parsing and serialization of flow control data used in
+    Wii game files. It manages a collection of flow nodes (text, condition, event)
+    and branch node references.
+    Attributes:
+        flow_nodes (list[flw_node]): List of flow nodes in this section.
+        branch_nodes (list[int]): List of branch node IDs.
+    Methods:
+        __init__(flow_nodes, branch_nodes): Initialize a FLW1Section with optional
+            flow nodes and branch nodes.
+        unpack_section(raw_bytes): Class method that deserializes a FLW1Section
+            from raw binary data (BytesIO). Reads the flow node count and branch
+            node count from the header, then parses each node based on its type
+            (text, condition, or event). Returns a populated FLW1Section instance.
+        repack_section(): Serializes the FLW1Section back into binary format (BytesIO).
+            Writes the header with node counts, then serializes each flow node and
+            branch node sequentially. Returns the packed data as BytesIO.
+    """
     flow_nodes: list[flw_node]
     branch_nodes: list[int]
 

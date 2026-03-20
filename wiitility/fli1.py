@@ -17,6 +17,20 @@ class FLI1Entry:
         return data
 
 class FLI1Section:
+    """
+    A section containing a collection of FLI1 entries.
+    This class manages a list of FLI1Entry objects and provides functionality to serialize
+    and deserialize them to/from binary data. Each entry has a fixed size of 0x8 bytes.
+    Attributes:
+        entry_size (int): The fixed size of each FLI1Entry in bytes (0x8).
+        entry_count (int): The current number of entries in the section.
+        entries (list[FLI1Entry]): The list of FLI1Entry objects contained in this section.
+    Methods:
+        __init__(entries): Initializes a new FLI1Section with an optional list of entries.
+        add_entry(entry): Adds a new FLI1Entry to the section and updates the entry count.
+        unpack_section(raw_bytes): Class method that deserializes binary data into a FLI1Section object.
+        repack_section(): Serializes the section and its entries back into binary data.
+    """
     entry_size = 0x8
 
     def __init__(self, entries: list[FLI1Entry] = []):
