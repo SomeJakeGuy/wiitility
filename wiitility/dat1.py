@@ -97,7 +97,7 @@ class DAT1Section:
                 tag = Tag.unpack_tag(raw_bytes, offset)
                 tags.append(tag)
             else:
-                if char_bytes[0] == b'\x00':
+                if char_bytes.startswith(b'\x00'):
                     string += char_bytes.decode('utf-8')
                 else:
                     string += char_bytes.decode('shift-jis')
