@@ -1,11 +1,11 @@
-import bytes_helpers as bh
 from io import BytesIO
-from inf1 import INF1Section
-from dat1 import DAT1Section
-from flw1 import FLW1Section
-from fli1 import FLI1Section
 
-type bmg_section = INF1Section | DAT1Section | FLW1Section | FLI1Section
+import wiitility.bytes_helpers as bh
+from wiitility.BMGSections.bmg_section import BMGSection
+from wiitility.BMGSections.inf1 import INF1Section
+from wiitility.BMGSections.dat1 import DAT1Section
+from wiitility.BMGSections.flw1 import FLW1Section
+from wiitility.BMGSections.fli1 import FLI1Section
 
 class BMG:
     """
@@ -30,7 +30,7 @@ class BMG:
             Returns the complete BMG file as bytes.
     """
     section_count: int
-    sections: list[bmg_section]
+    sections: list[BMGSection]
 
     def __init__(self, raw_bytes: BytesIO):
         data_magic = bh.read_str(raw_bytes, 0x0, 4)
@@ -71,18 +71,9 @@ class BMG:
             self.sections.append(section)
             offset += section_size
 
-    def add_header_to_section(self, section: bmg_section) -> BytesIO:
+    def add_header_to_section(self, section: BMGSection) -> BytesIO:
         data = BytesIO()
 
-        if isinstance(section, INF1Section):
-            magic = "INF1"
-        elif isinstance(section, DAT1Section):
-            magic = "DAT1"
-        elif isinstance(section, FLW1Section):
-            magic = "FLW1"
-        elif isinstance(section, FLI1Section):
-            magic = "FLI1"
-        
         section_bytes = section.repack_section()
         section_size = section_bytes.seek(0, 2) + 0x8
         
@@ -91,15 +82,15 @@ class BMG:
             padding = 32 - section_size % 32
             section_size += padding
         
-        bh.write_str(data, 0x0, magic, 4)
+        bh.write_str(data, 0x0, section.magic, 4)
         bh.write_u32(data, 0x4, section_size)
         bh.write_bytes(data, 0x8, section_bytes.getvalue())
         bh.write_bytes(data, section_size - padding, b'\x00' * padding)
 
         return data
     
-    def get_section(self, section_magic: str) -> list[bmg_section]:
-        out: list[bmg_section] = []
+    def get_section(self, section_magic: str) -> list[BMGSection]:
+        out: list[BMGSection] = []
 
         for section in self.sections:
             if section.magic == section_magic:
@@ -112,13 +103,16 @@ class BMG:
 
         bh.write_str(data, 0x0, "MESG", 4)
         bh.write_str(data, 0x4, "bmg1", 4)
-        bh.write_u32(data, 0x8, self.flw1_section_offset)
+        bh.write_u32(data, 0x8, 0) # Write the flw1_section_offset later
         bh.write_u32(data, 0xC, len(self.sections))
         bh.write_u8(data, 0x10, self.unknown)
         bh.write_bytes(data, 0x11, b'\x00' * 15)
 
         offset = 0x20
         for section in self.sections:
+            if section.magic == "FLW1":
+                bh.write_u32(data, 0x8, offset)
+            
             section_bytes = self.add_header_to_section(section)
             bh.write_bytes(data, offset, section_bytes.getvalue())
             offset += len(section_bytes.getvalue())

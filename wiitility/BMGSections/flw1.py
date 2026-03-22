@@ -1,8 +1,10 @@
 from enum import IntEnum
 from io import BytesIO
-import bytes_helpers as bh
+import wiitility.bytes_helpers as bh
+from wiitility.BMGSections.bmg_section import BMGSection
 
-NODE_SIZE = 0x8
+NODE_SIZE: int = 0x8
+FLW1_MAGIC: str = "FLW1"
 type flw_node = FLWTextNode | FLWConditionNode | FLWEventNode
 
 class NodeType(IntEnum):
@@ -118,7 +120,7 @@ class FLWEventNode:
 
         return data
 
-class FLW1Section:
+class FLW1Section(BMGSection):
     """
     Represents a FLW1 (Flow) section containing flow nodes and branch nodes.
     This class handles the parsing and serialization of flow control data used in
@@ -140,9 +142,15 @@ class FLW1Section:
     """
     flow_nodes: list[flw_node]
     branch_nodes: list[int]
-    magic: str = "FLW1"
 
-    def __init__(self, flow_nodes: list[flw_node] = [], branch_nodes: list[int] = []):
+    def __init__(self, flow_nodes: list[flw_node] = None, branch_nodes: list[int] = None):
+        super().__init__(FLW1_MAGIC)
+        
+        if flow_nodes == None:
+            flow_nodes = []
+        if branch_nodes == None:
+            branch_nodes = []
+        
         self.flow_node_count = len(flow_nodes)
         self.branch_node_count = len(branch_nodes)
 

@@ -1,7 +1,10 @@
 from io import BytesIO
-import bytes_helpers as bh
 from enum import IntEnum
 from typing import NamedTuple
+import wiitility.bytes_helpers as bh
+from wiitility.BMGSections.bmg_section import BMGSection
+
+DAT1_MAGIC: str = "DAT1"
 
 class TagIdentifier(IntEnum):
     """
@@ -64,7 +67,7 @@ class Message(NamedTuple):
     string: str
     tags: list[Tag]
 
-class DAT1Section:
+class DAT1Section(BMGSection):
     """
     Represents a section of DAT1 message data containing multiple messages with their associated tags.
     This class handles the serialization and deserialization of message sections encoded in a binary format
@@ -73,9 +76,11 @@ class DAT1Section:
     Attributes:
         messages (list[Message]): A list of Message objects contained in this section.
     """
-    magic: str = "DAT1"
+    def __init__(self, messages: list[Message] = None):
+        super().__init__(DAT1_MAGIC)
 
-    def __init__(self, messages: list[Message] = []):
+        if messages == None:
+            messages = []
         self.messages: list[Message] = messages
     
     def add_message(self, message: Message):

@@ -1,6 +1,9 @@
 from io import BytesIO
 from enum import IntEnum
-import bytes_helpers as bh
+import wiitility.bytes_helpers as bh
+from wiitility.BMGSections.bmg_section import BMGSection
+
+INF1_MAGIC: str = "INF1"
 
 class CameraType(IntEnum):
     normal = 0
@@ -93,7 +96,7 @@ class INF1Entry:
 
         return data
 
-class INF1Section:
+class INF1Section(BMGSection):
     """
     Represents an INF1 section from a BMG file.
     This class manages a collection of INF1 entries and provides methods to
@@ -109,16 +112,19 @@ class INF1Section:
         unpack_section(raw_bytes): Class method to deserialize an INF1 section from raw bytes.
         repack_section(): Serialize the section back into binary format.
     """
-    data_offset = 0x8
-    entry_size = 0xC
+    data_offset: int = 0x8
+    entry_size: int = 0xC
     entries: list[INF1Entry]
-    magic: str = "INF1"
+    
 
-    def __init__(self, entries: list[INF1Entry] = []):
-        # Make sure list is of INF1Entry
-        assert isinstance(entries, list)
+    def __init__(self, entries: list[INF1Entry] = None):
+        super().__init__(INF1_MAGIC)
+
+        # Make sure list is of INF1Entry and set to empty if unspecified
         if entries:
             assert isinstance(entries[0], INF1Entry)
+        else:
+            entries = []
 
         self.entry_count = len(entries)
         self.entries = entries

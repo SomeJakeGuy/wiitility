@@ -1,5 +1,8 @@
 from io import BytesIO
-import bytes_helpers as bh
+import wiitility.bytes_helpers as bh
+from wiitility.BMGSections.bmg_section import BMGSection
+
+FLI1_MAGIC: str = "FLI1"
 
 class FLI1Entry:
     def __init__(self, unknown1: int, unknown2: int):
@@ -16,7 +19,7 @@ class FLI1Entry:
 
         return data
 
-class FLI1Section:
+class FLI1Section(BMGSection):
     """
     A section containing a collection of FLI1 entries.
     This class manages a list of FLI1Entry objects and provides functionality to serialize
@@ -32,9 +35,13 @@ class FLI1Section:
         repack_section(): Serializes the section and its entries back into binary data.
     """
     entry_size = 0x8
-    magic: str = "FLI1"
 
-    def __init__(self, entries: list[FLI1Entry] = []):
+    def __init__(self, entries: list[FLI1Entry] = None):
+        super().__init__(FLI1_MAGIC)
+
+        if entries == None:
+            entries = []
+
         self.entry_count = len(entries)
         self.entries = entries
 
