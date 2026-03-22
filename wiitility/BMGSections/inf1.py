@@ -57,7 +57,7 @@ class INF1Entry:
         self.gameeventvalue_index: int = gameeventvalue_index
 
     @classmethod
-    def unpack_entry(cls, raw_bytes: BytesIO | bytes):
+    def import_entry(cls, raw_bytes: BytesIO | bytes):
         if isinstance(raw_bytes, bytes):
             raw_bytes = BytesIO(raw_bytes)
         
@@ -82,7 +82,7 @@ class INF1Entry:
                          area_ID,
                          gameeventvalue_index)
 
-    def repack_entry(self) -> BytesIO:
+    def export_entry(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_u32(data, 0x0, self.message_data_offset)
@@ -100,7 +100,7 @@ class INF1Section(BMGSection):
     """
     Represents an INF1 section from a BMG file.
     This class manages a collection of INF1 entries and provides methods to
-    pack and unpack the section data to/from binary format.
+    pack and import the section data to/from binary format.
     Attributes:
         data_offset (int): The byte offset where entry data begins (0x8).
         entry_size (int): The size in bytes of each entry (0xC).
@@ -109,8 +109,8 @@ class INF1Section(BMGSection):
     Methods:
         __init__(entries): Initialize a new INF1Section with optional entries.
         add_entry(entry): Add an INF1Entry to the section.
-        unpack_section(raw_bytes): Class method to deserialize an INF1 section from raw bytes.
-        repack_section(): Serialize the section back into binary format.
+        import_section(raw_bytes): Class method to deserialize an INF1 section from raw bytes.
+        export_section(): Serialize the section back into binary format.
     """
     data_offset: int = 0x8
     entry_size: int = 0xC
@@ -135,10 +135,10 @@ class INF1Section(BMGSection):
         self.entry_count = len(self.entries)
 
     @classmethod
-    def unpack_section(cls, raw_bytes: BytesIO):
+    def import_section(cls, raw_bytes: BytesIO):
         """
-        Unpacks a BMG section from raw bytes into an INF1 section object.
-        raw_bytes (BytesIO): A BytesIO object containing the section data to unpack.
+        Imports a BMG section from raw bytes into an INF1 section object.
+        raw_bytes (BytesIO): A BytesIO object containing the section data to import.
         """
         entry_count = bh.read_u16(raw_bytes, 0x0)
         entry_size = bh.read_u16(raw_bytes, 0x2)
@@ -149,12 +149,12 @@ class INF1Section(BMGSection):
         for entry_index in range(entry_count):
             raw_bytes.seek(cls.data_offset + entry_index * entry_size)
             entry_bytes: bytes = raw_bytes.read(entry_size)
-            entry: INF1Entry = INF1Entry.unpack_entry(entry_bytes)
+            entry: INF1Entry = INF1Entry.import_entry(entry_bytes)
             section.add_entry(entry)
 
         return section
 
-    def repack_section(self) -> BytesIO:
+    def export_section(self) -> BytesIO:
         data = BytesIO()
 
         entry_count = len(self.entries)
@@ -164,7 +164,7 @@ class INF1Section(BMGSection):
 
         offset = 0x8
         for entry in self.entries:
-            entry_data = entry.repack_entry()
+            entry_data = entry.export_entry()
             bh.write_bytes(data, offset, entry_data.getvalue())
             offset += self.entry_size
         

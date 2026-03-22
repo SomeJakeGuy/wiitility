@@ -29,7 +29,7 @@ class FLWTextNode:
         self.unknown2: int = unknown2
     
     @classmethod
-    def unpack_node(cls, raw_bytes: BytesIO):
+    def import_node(cls, raw_bytes: BytesIO):
         assert raw_bytes.seek(0, 2) == NODE_SIZE
 
         unknown1 = bh.read_u8(raw_bytes, 0x1)
@@ -40,7 +40,7 @@ class FLWTextNode:
 
         return cls(unknown1, message_ID, next_flow_ID, validity, unknown2)
     
-    def repack_node(self) -> BytesIO:
+    def export_node(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_u8(data, 0x0, self.node_type)
@@ -67,7 +67,7 @@ class FLWConditionNode:
         self.branch_node_ID: int = branch_node_ID
     
     @classmethod
-    def unpack_node(cls, raw_bytes: BytesIO):
+    def import_node(cls, raw_bytes: BytesIO):
         assert raw_bytes.seek(0, 2) == NODE_SIZE
 
         unknown1 = bh.read_u8(raw_bytes, 0x1)
@@ -77,7 +77,7 @@ class FLWConditionNode:
 
         return cls(unknown1, condition_type, condition_argument, branch_node_ID)
     
-    def repack_node(self) -> BytesIO:
+    def export_node(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_u8(data, 0x0, self.node_type)
@@ -101,7 +101,7 @@ class FLWEventNode:
         self.event_argument: int = event_argument
     
     @classmethod
-    def unpack_node(cls, raw_bytes: BytesIO):
+    def import_node(cls, raw_bytes: BytesIO):
         assert raw_bytes.seek(0, 2) == NODE_SIZE
 
         event_type = bh.read_u8(raw_bytes, 0x1)
@@ -110,7 +110,7 @@ class FLWEventNode:
 
         return cls(event_type, branch_node_ID, event_argument)
     
-    def repack_node(self) -> BytesIO:
+    def export_node(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_u8(data, 0x0, self.node_type)
@@ -132,11 +132,11 @@ class FLW1Section(BMGSection):
     Methods:
         __init__(flow_nodes, branch_nodes): Initialize a FLW1Section with optional
             flow nodes and branch nodes.
-        unpack_section(raw_bytes): Class method that deserializes a FLW1Section
+        import_section(raw_bytes): Class method that deserializes a FLW1Section
             from raw binary data (BytesIO). Reads the flow node count and branch
             node count from the header, then parses each node based on its type
             (text, condition, or event). Returns a populated FLW1Section instance.
-        repack_section(): Serializes the FLW1Section back into binary format (BytesIO).
+        export_section(): Serializes the FLW1Section back into binary format (BytesIO).
             Writes the header with node counts, then serializes each flow node and
             branch node sequentially. Returns the packed data as BytesIO.
     """
@@ -158,7 +158,7 @@ class FLW1Section(BMGSection):
         self.branch_nodes = branch_nodes
 
     @classmethod
-    def unpack_section(cls, raw_bytes: BytesIO):
+    def import_section(cls, raw_bytes: BytesIO):
         section = cls()
         
         flow_node_count = bh.read_u16(raw_bytes, 0x0)
@@ -171,11 +171,11 @@ class FLW1Section(BMGSection):
             node_bytes = BytesIO(node_bytes)
 
             if node_type == NodeType.text:
-                node = FLWTextNode.unpack_node(node_bytes)
+                node = FLWTextNode.import_node(node_bytes)
             elif node_type == NodeType.condition:
-                node = FLWConditionNode.unpack_node(node_bytes)
+                node = FLWConditionNode.import_node(node_bytes)
             elif node_type == NodeType.event:
-                node = FLWEventNode.unpack_node(node_bytes)
+                node = FLWEventNode.import_node(node_bytes)
             
             section.flow_nodes.append(node)
             offset += 0x8
@@ -187,7 +187,7 @@ class FLW1Section(BMGSection):
         
         return section
     
-    def repack_section(self) -> BytesIO:
+    def export_section(self) -> BytesIO:
         data = BytesIO()
 
         self.flow_node_count = len(self.flow_nodes)
@@ -199,7 +199,7 @@ class FLW1Section(BMGSection):
 
         offset = 0x8
         for flow_node in self.flow_nodes:
-            flow_data = flow_node.repack_node()
+            flow_data = flow_node.export_node()
             bh.write_bytes(data, offset, flow_data.getvalue())
 
             offset += 0x8

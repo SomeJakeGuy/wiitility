@@ -9,7 +9,7 @@ class FLI1Entry:
         self.unknown1 = unknown1
         self.unknown2 = unknown2
 
-    def repack_entry(self) -> BytesIO:
+    def export_entry(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_u16(data, 0x0, self.unknown1)
@@ -31,8 +31,8 @@ class FLI1Section(BMGSection):
     Methods:
         __init__(entries): Initializes a new FLI1Section with an optional list of entries.
         add_entry(entry): Adds a new FLI1Entry to the section and updates the entry count.
-        unpack_section(raw_bytes): Class method that deserializes binary data into a FLI1Section object.
-        repack_section(): Serializes the section and its entries back into binary data.
+        import_section(raw_bytes): Class method that deserializes binary data into a FLI1Section object.
+        export_section(): Serializes the section and its entries back into binary data.
     """
     entry_size = 0x8
 
@@ -50,7 +50,7 @@ class FLI1Section(BMGSection):
         self.entry_count = len(self.entries)
 
     @classmethod
-    def unpack_section(cls, raw_bytes: BytesIO):
+    def import_section(cls, raw_bytes: BytesIO):
         entry_count = bh.read_u16(raw_bytes, 0x0)
         entry_size = bh.read_u8(raw_bytes, 0x2)
         assert entry_size == cls.entry_size
@@ -69,7 +69,7 @@ class FLI1Section(BMGSection):
         
         return section
     
-    def repack_section(self) -> BytesIO:
+    def export_section(self) -> BytesIO:
         data = BytesIO()
 
         self.entry_count = len(self.entries)
@@ -79,7 +79,7 @@ class FLI1Section(BMGSection):
 
         offset = 0x8
         for entry in self.entries:
-            entry_data = entry.repack_entry()
+            entry_data = entry.export_entry()
             bh.write_bytes(data, offset, entry_data.getvalue())
 
             offset += 0x8

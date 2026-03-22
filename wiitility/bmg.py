@@ -9,7 +9,7 @@ from wiitility.BMGSections.fli1 import FLI1Section
 
 class BMG:
     """
-    BMG (Binary Message Data) file handler for parsing and repacking binary message data.
+    BMG (Binary Message Data) file handler for parsing and exporting binary message data.
     The BMG class manages the structure of BMG files which contain multiple sections
     (INF1, DAT1, FLW1, FLI1) that store message information and data.
     Attributes:
@@ -24,7 +24,7 @@ class BMG:
         add_header_to_section(section: bmg_section) -> BytesIO:
             Wraps a section with its BMG header (magic and size) and applies
             32-byte alignment padding. Returns the complete section data.
-        repack_bmg() -> BytesIO:
+        export_bmg() -> BytesIO:
             Reconstructs the complete BMG file from the current sections list.
             Rebuilds the header and all sections with proper formatting and padding.
             Returns the complete BMG file as bytes.
@@ -58,15 +58,13 @@ class BMG:
             
             match section_magic:
                 case "INF1":
-                    section = INF1Section.unpack_section(section_bytes)
+                    section = INF1Section.import_section(section_bytes)
                 case "DAT1":
-                    section = DAT1Section.unpack_section(section_bytes)
+                    section = DAT1Section.import_section(section_bytes)
                 case "FLW1":
-                    with open(r"C:/Users/sebas/Desktop/Decompiling/Game/Dump/files/UsEnglish/MessageData/Message.d/binary_data.bin", 'wb') as file:
-                        file.write(section_bytes.getvalue())
-                    section = FLW1Section.unpack_section(section_bytes)
+                    section = FLW1Section.import_section(section_bytes)
                 case "FLI1":
-                    section = FLI1Section.unpack_section(section_bytes)
+                    section = FLI1Section.import_section(section_bytes)
             
             self.sections.append(section)
             offset += section_size
@@ -74,7 +72,7 @@ class BMG:
     def add_header_to_section(self, section: BMGSection) -> BytesIO:
         data = BytesIO()
 
-        section_bytes = section.repack_section()
+        section_bytes = section.export_section()
         section_size = section_bytes.seek(0, 2) + 0x8
         
         padding = 0
@@ -98,7 +96,7 @@ class BMG:
         
         return out
 
-    def repack_bmg(self) -> BytesIO:
+    def export_bmg(self) -> BytesIO:
         data = BytesIO()
 
         bh.write_str(data, 0x0, "MESG", 4)
