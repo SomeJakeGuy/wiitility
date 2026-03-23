@@ -32,6 +32,22 @@ def read_u32(data: BytesIO, offset: int) -> int:
     data.seek(offset)
     return struct.unpack(">I", data.read(length))[0]
 
+def read_s8(data: BytesIO, offset: int) -> int:
+    data_length = data.seek(offset, 2)
+    length = 1
+    if offset + length > data_length:
+        raise ByteHelperError(f"Offset {str(offset)} + Length {str(length)} is longer than the data size {str(data_length)}.")
+    data.seek(offset)
+    return struct.unpack(">b", data.read(length))[0]
+
+def read_s16(data: BytesIO, offset: int) -> int:
+    data_length = data.seek(offset, 2)
+    length = 2
+    if offset + length > data_length:
+        raise ByteHelperError(f"Offset {str(offset)} + Length {str(length)} is longer than the data size {str(data_length)}.")
+    data.seek(offset)
+    return struct.unpack(">h", data.read(length))[0]
+
 def read_s32(data: BytesIO, offset: int) -> int:
     data_length = data.seek(offset, 2)
     length = 4
@@ -40,7 +56,7 @@ def read_s32(data: BytesIO, offset: int) -> int:
     data.seek(offset)
     return struct.unpack(">i", data.read(length))[0]
 
-def read_bytes(data: BytesIO, offset: int, size: int) -> bytes:
+def read_bytes(data: BytesIO, offset: int, size: int = -1) -> bytes:
     data_length = data.seek(offset, 2)
     if offset + size > data_length:
         raise ByteHelperError(f"Offset {str(offset)} + Size {str(size)} is longer than the data size {str(data_length)}.")
@@ -71,6 +87,16 @@ def write_u32(data: BytesIO, offset: int, new_value: int):
     data.seek(offset)
     data.write(new_bytes)
 
+def write_s8(data: BytesIO, offset: int, new_value: int):
+    new_bytes = struct.pack(">b", new_value)
+    data.seek(offset)
+    data.write(new_bytes)
+
+def write_s16(data: BytesIO, offset: int, new_value: int):
+    new_bytes = struct.pack(">h", new_value)
+    data.seek(offset)
+    data.write(new_bytes)
+
 def write_s32(data: BytesIO, offset: int, new_value: int):
     new_bytes = struct.pack(">i", new_value)
     data.seek(offset)
@@ -85,7 +111,7 @@ def write_float(data: BytesIO, offset: int, new_value: float):
     data.seek(offset)
     data.write(new_bytes)
 
-def read_str(data: BytesIO, offset: int, max_length: int) -> str:
+def read_str(data: BytesIO, offset: int, max_length: int = -1) -> str:
     data_length = data.seek(offset, 2)
     if (offset + max_length) > data_length:
         raise ByteHelperError(f"Offset {str(offset)} + Length {str(max_length)} is longer than the data size {str(data_length)}.")
