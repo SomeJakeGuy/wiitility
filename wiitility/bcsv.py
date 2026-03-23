@@ -331,7 +331,7 @@ class BCSV:
 
             entry_bytes: BytesIO = BytesIO(bytearray(entry_size))
             # Loop through all fields to write into the bcsv for each entry
-            for field in entry.keys():
+            for field in self.fields:
                 field.set_value_in_buffer(entry_bytes, entry[field], string_pool)
 
             # Update the entry bytes into the BCSV data object.
