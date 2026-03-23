@@ -141,17 +141,17 @@ class BCSVField:
     def set_value_in_buffer(self, entry_bytes: BytesIO, entry_value: BCSVValue, string_pool: list[StringPoolElement]):
         match self.field_type:
             case BCSVType.LONG | BCSVType.LONG_2:
-                value: int = bh.read_u32(entry_bytes, self.field_offset)
+                value: int = bh.read_s32(entry_bytes, self.field_offset)
                 value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
-                bh.write_u32(entry_bytes, self.field_offset, value)
+                bh.write_s32(entry_bytes, self.field_offset, value)
             case BCSVType.SHORT:
-                value: int = bh.read_u16(entry_bytes, self.field_offset)
+                value: int = bh.read_s16(entry_bytes, self.field_offset)
                 value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
-                bh.write_u16(entry_bytes, self.field_offset, value)
+                bh.write_s16(entry_bytes, self.field_offset, value)
             case BCSVType.BYTE:
-                value: int = bh.read_u8(entry_bytes, self.field_offset)
+                value: int = bh.read_s8(entry_bytes, self.field_offset)
                 value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
-                bh.write_u8(entry_bytes, self.field_offset, value)
+                bh.write_s8(entry_bytes, self.field_offset, value)
             case BCSVType.FLOAT:
                 bh.write_float(entry_bytes, self.field_offset, float(entry_value))
             case BCSVType.STRING:
@@ -170,7 +170,7 @@ class BCSVField:
                     pool_element = StringPoolElement(value, pool_offset)
                     string_pool.append(pool_element)
 
-                bh.write_u32(entry_bytes, self.field_offset, pool_element.offset)
+                bh.write_s32(entry_bytes, self.field_offset, pool_element.offset)
             case _:
                 raise TypeError(f"Unsupported BCSV Field type: {self.field_type}")
 
