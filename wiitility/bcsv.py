@@ -196,7 +196,7 @@ class BCSVEntry(dict[BCSVKey, BCSVValue]):
     def find_field(bcsv_field: BCSVKey) -> str | None:
         """Finds a specific BCSV field by its hash value or field name. Can return None as well if no field found."""
         if isinstance(bcsv_field, int):
-            return BCSVEntry.hash_names[bcsv_field] if bcsv_field in BCSVEntry.hash_names else None
+            return BCSVEntry.hash_names[bcsv_field] if bcsv_field in BCSVEntry.hash_names else bcsv_field
         elif isinstance(bcsv_field, str):
             return bcsv_field
         elif isinstance(bcsv_field, BCSVField):
