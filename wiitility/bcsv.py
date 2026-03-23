@@ -38,19 +38,19 @@ class BCSVType(IntEnum):
     Strings are deprecated and should use of type STRING_OFFSET instead.
     Longs, Short, and Byte should all AND the read value with the field's bitmask and then
         shift the result by the field's shift amount.
-    LONG and LONG_2 are 32-bit signed integers
-    FLOAT are 32-bit
-    Short are 16-bit signed integers
-    BYTE is single char/8-bit integers.
+    LONG and UNSIGNED_LONG are 32-bit integers. (Signedness not specified, as it can be both)
+    FLOAT are 32-bit. (Signedness not specified, as it can be both)
+    Short are 16-bit integers (Signedness not specified, as it can be both)
+    BYTE is single char/8-bit integers (Signedness not specified, as it can be both)
     Floats are read and written as is.
     String_Offset return the offset from the start of the string pool table where the string can be found.
     """
-    LONG = 0 # 32-bit integer. Signedness is not specified.
+    LONG = 0 # 32-bit integer.
     STRING = 1 # Embedded string. Deprecated.
     FLOAT = 2 # Single-precision floating-point value.
-    LONG_2 = 3 # 32-bit integer.
+    UNSIGNED_LONG = 3 # 32-bit integer.
     SHORT = 4 # 16-bit integer.
-    BYTE = 5 # Single character as 8bit integer.
+    BYTE = 5 # Single char/8-bit integers
     STRING_OFFSET = 6 # 32-bit offset into string table.
 
 
@@ -120,12 +120,18 @@ class BCSVField:
     def get_value_from_bytes(self, entry_bytes: BytesIO) -> BCSVValue | None:
         value: int | None = None
         match self.field_type:
-            case BCSVType.LONG | BCSVType.LONG_2:
+            case BCSVType.LONG | BCSVType.UNSIGNED_LONG:
                 value = bh.read_s32(entry_bytes, self.field_offset)
+                if self.field_bitmask == 0xFFFFFFFF and self.field_shift == 0:
+                    return value
             case BCSVType.SHORT:
                 value = bh.read_s16(entry_bytes, self.field_offset)
+                if self.field_bitmask == 0xFFFF and self.field_shift == 0:
+                    return value
             case BCSVType.BYTE:
                 value = bh.read_s8(entry_bytes, self.field_offset)
+                if self.field_bitmask == 0xFF and self.field_shift == 0:
+                    return value
             case BCSVType.FLOAT:
                 return bh.read_float(entry_bytes, self.field_offset)
             case BCSVType.STRING_OFFSET:
@@ -140,7 +146,7 @@ class BCSVField:
 
     def set_value_in_buffer(self, entry_bytes: BytesIO, entry_value: BCSVValue, string_pool: list[StringPoolElement]):
         match self.field_type:
-            case BCSVType.LONG | BCSVType.LONG_2:
+            case BCSVType.LONG | BCSVType.UNSIGNED_LONG:
                 value: int = bh.read_s32(entry_bytes, self.field_offset)
                 value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
                 bh.write_s32(entry_bytes, self.field_offset, value)
@@ -177,7 +183,7 @@ class BCSVField:
 
     def get_field_size(self):
         match self.field_type:
-            case BCSVType.LONG | BCSVType.LONG_2 | BCSVType.FLOAT | BCSVType.STRING_OFFSET:
+            case BCSVType.LONG | BCSVType.UNSIGNED_LONG | BCSVType.FLOAT | BCSVType.STRING_OFFSET:
                 return BCSVTypeSize.WORD
             case BCSVType.SHORT:
                 return BCSVTypeSize.HALF_WORD
