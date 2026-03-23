@@ -147,18 +147,21 @@ class BCSVField:
     def set_value_in_buffer(self, entry_bytes: BytesIO, entry_value: BCSVValue, string_pool: list[StringPoolElement]):
         match self.field_type:
             case BCSVType.LONG | BCSVType.UNSIGNED_LONG:
-                value: int = bh.read_s32(entry_bytes, self.field_offset)
+                value = entry_value
                 if not (self.field_bitmask == 0xFFFFFFFF and self.field_shift == 0):
+                    value: int = bh.read_s32(entry_bytes, self.field_offset)
                     value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
                 bh.write_s32(entry_bytes, self.field_offset, value)
             case BCSVType.SHORT:
-                value: int = bh.read_s16(entry_bytes, self.field_offset)
+                value = entry_value
                 if not (self.field_bitmask == 0xFFFF and self.field_shift == 0):
+                    value: int = bh.read_s16(entry_bytes, self.field_offset)
                     value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
                 bh.write_s16(entry_bytes, self.field_offset, value)
             case BCSVType.BYTE:
-                value: int = bh.read_s8(entry_bytes, self.field_offset)
+                value = entry_value
                 if not (self.field_bitmask == 0xFF and self.field_shift == 0):
+                    value: int = bh.read_s8(entry_bytes, self.field_offset)
                     value |= (int(entry_value) << int(self.field_shift)) & int(self.field_bitmask)
                 bh.write_s8(entry_bytes, self.field_offset, value)
             case BCSVType.FLOAT:
